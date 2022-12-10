@@ -1,0 +1,14 @@
+13
+Small wom 8
+Big wit 7
+Long wor 4
+Short wor 9
+Tall wom 3
+Dwarf wit 6
+Hungry wor 4
+Full wom 6
+Apple wit 6
+Ball wom 5
+Cat wor 6
+Dog wit 3
+Gold wor 8

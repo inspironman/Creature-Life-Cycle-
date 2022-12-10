@@ -1,0 +1,136 @@
+#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <vector>
+#include "radiation.h"
+#include "creature.h"
+
+using namespace std;
+
+int main()
+{
+    try
+    {
+    ifstream f("input.txt");
+    if(f.fail()) {cout << "Wrong file name\n"; return 1;}
+
+    // getting plants
+    int n; f >> n;
+
+
+    vector<Plants*> plants(n);
+    int reqAlpha;
+    int reqDelta;
+
+     for(int i=0;i<n;++i)
+     {
+         string plantName, shortName; int plantLevel;
+         f >> plantName >> shortName >> plantLevel;
+
+         if(shortName == "wom")
+         {
+              plants[i] = new Wombleroot(plantName,plantLevel);
+         }
+         else if(shortName == "wit")
+         {
+             plants[i] = new Wittenroot(plantName,plantLevel);
+         }
+         else if(shortName == "wor")
+         {
+             plants[i] = new Woreroot(plantName,plantLevel);
+         }
+
+     }
+
+    // preparing radiation
+    int j = 0;
+    vector<radiation*> radiations;
+    radiations.clear();
+    radiations.push_back(No_radiation::instance());
+   // create("input.txt",plants,radiations);
+    bool l = false;
+
+    while (true)
+    {
+            cout<<endl;
+            cout<<"Day "<<j+1<<endl;
+            cout<<endl;
+        if (l && radiations[j] == No_radiation::instance())
+        {
+            cout << "Two Consecutive days there is No Radiations " << endl;
+            break;
+        }
+         if( radiations[j] == No_radiation::instance() )
+         {
+             l = true;
+         }
+
+
+        reqAlpha = 0 , reqDelta = 0;
+        for (int i = 0; i < n; i++) // summing up the alpha and delta demand
+        {
+            if(plants[i]->alive())
+            {
+                reqAlpha+= plants[i]->getAlpha();
+                reqDelta+= plants[i]->getDelta();
+            }
+        }
+
+            if(reqAlpha >= (3+reqDelta))
+                {
+                    radiations[j+1] =  Alpha::instance();
+                }
+            else if(reqDelta >= (3+reqAlpha))
+                {
+                    radiations[j+1] =  Delta::instance();
+                }
+            else
+                {
+                    radiations[j+1] = No_radiation::instance();
+                }
+
+         for(int k=0;k<n;k++)
+        {
+            if(plants[k]->alive())
+            {
+            plants[k]->influence(radiations[j]);
+            cout << "====================================================" << endl;
+            cout << "Name of the plant is " << plants[k]->name() << endl;
+             if(plants[k]->alive())
+            {
+                cout << plants[k]->name() <<" is alive"<<endl;
+                cout << "Energy level " << plants[k]->getPower() << endl;
+            }
+            else
+            {
+                cout << plants[k]->name() <<" is dead"<<endl;
+            }
+
+            }
+        }
+            j++;
+    }
+
+    // destroying plants
+    for(int i=0;i<n; i++) delete plants[i];
+
+    //destroying radiations
+    No_radiation::destroy();
+    Alpha::destroy();
+    Delta::destroy();
+    }
+    catch (exception e)
+    {
+        cout<<e.what()<<endl;
+    }
+    return 0;
+}
+
+https://www.murtazamundrawala.com/project/
+
+
+
+
+
+
+

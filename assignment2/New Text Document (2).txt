@@ -1,0 +1,368 @@
+#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <vector>
+#include "radiation.h"
+#include "creature.h"
+#include <exception>
+
+using namespace std;
+static int reqAlpha;
+static int reqDelta;
+
+void create(const string &str, vector<Plants*> &plants, vector<radiation*> &radiations)
+{
+    ifstream f(str);
+    if(f.fail()) { cout << "Wrong file name!\n"; exit(1);}
+
+    int n; f >> n;
+    plants.resize(n);
+    radiations.clear();
+    radiations.push_back(No_radiation::instance());
+
+    for(int i=0;i<n;++i)
+     {
+         string plantName, shortName; int plantLevel;
+         f >> plantName >> shortName >> plantLevel;
+
+         if(shortName == "wom")
+         {
+              plants[i] = new Wombleroot(plantName,plantLevel);
+         }
+         else if(shortName == "wit")
+         {
+             plants[i] = new Wittenroot(plantName,plantLevel);
+         }
+         else if(shortName == "wor")
+         {
+             plants[i] = new Woreroot(plantName,plantLevel);
+         }
+
+     }
+}
+
+
+void simulate (vector<Plants*> &plants, vector<radiation*> &radiations,vector < vector <Plants*> > &ans)
+{
+  try
+  {
+    int j = 0;
+
+    bool l = false;
+    while (true)
+    {
+            //cout<<endl;
+            //cout<<"Day "<<j+1<<endl;
+            //cout<<endl;
+        if (l && radiations[j] == No_radiation::instance())
+        {
+            //cout << "Two Consecutive days there is No Radiations " << endl;
+            break;
+        }
+         if( radiations[j] == No_radiation::instance() )
+         {
+             l = true;
+         }
+
+                reqAlpha = 0 , reqDelta = 0;
+        for (unsigned int i = 0; i < plants.size(); i++) // summing up the alpha and delta demand
+        {
+            if(plants[i]->alive())
+            {
+                reqAlpha+= plants[i]->getAlpha();
+                reqDelta+= plants[i]->getDelta();
+            }
+        }
+
+            if(reqAlpha >= (3+reqDelta))
+                {
+                    radiations[j+1] =  Alpha::instance();
+                }
+            else if(reqDelta >= (3+reqAlpha))
+                {
+                    radiations[j+1] =  Delta::instance();
+                }
+            else
+                {
+                    radiations[j+1] = No_radiation::instance();
+                }
+        ans.resize(j+2);
+        for(unsigned int k=0;k<plants.size();k++)
+        {
+            if(plants[k]->alive())
+            {
+            plants[k]->influence(radiations[j]);
+            ans[j].push_back(plants[k]);
+            }
+
+//            cout<<"Day " << j << endl ;
+//            cout << "====================================================" << endl;
+//            cout << "Name of the plant is " << ans[j][k]->name() << endl;
+//
+//             if(ans[j][k]->alive())
+//            {
+//                cout << ans[j][k]->name() <<" is alive"<<endl;
+//                cout << "Energy level " << ans[j][k]->getPower() << endl;
+//            }
+//            else
+//            {
+//                cout << ans[j][k]->name() <<" is dead"<<endl;
+//            }
+        }
+
+        cout << endl ;
+         for (unsigned int i = 0 ; i < j; i++)
+    {
+        cout<<"Day "<<j<<endl;
+        for (unsigned int j =0 ;j< plants.size(); j++)
+        {
+            cout << "====================================================" << endl;
+            cout << "Name of the plant is " << ans[i][j]->name() << endl;
+
+            if(ans[i][j]->alive())
+            {
+                cout << ans[i][j]->name() <<" is alive"<<endl;
+                cout << "Energy level " << ans[i][j]->getPower() << endl;
+            }
+            else
+            {
+                cout << ans[i][j]->name() <<" is dead"<<endl;
+            }
+        }
+        cout<< "\n"<<endl;
+        cout << "Two Consecutive days there is No Radiations " << endl;
+    }
+
+
+        j++;
+    }
+
+  }
+
+  catch (exception fok)
+  {
+      cout<<fok.what()<<endl;
+  }
+
+}
+
+
+// destroying plants
+void destroyplants(vector<Plants*> &plants)
+{
+    for(unsigned int i=0;i<plants.size(); i++) delete plants[i];
+}
+
+ //destroying radiations
+void destroyradiation()
+{
+    No_radiation::destroy();
+    Alpha::destroy();
+    Delta::destroy();
+}
+
+#define NORMAL_MODE
+#ifdef NORMAL_MODE
+
+int main()
+{
+
+    vector<Plants*> plants;
+    vector<radiation*> radiations;
+    create("input7.txt",plants,radiations);
+
+
+    vector < vector <Plants*> > ans;
+
+    simulate(plants,radiations,ans);
+//    for (unsigned int i = 0 ; i< ans.size(); i++)
+//    {
+//        cout<<"Day "<<i+1<<endl;
+//        for (unsigned int j =0 ;j<ans[i].size(); j++)
+//        {
+//            cout << "====================================================" << endl;
+//            cout << "Name of the plant is " << ans[i][j]->name() << endl;
+//
+//            if(ans[i][j]->alive())
+//            {
+//                cout << ans[i][j]->name() <<" is alive"<<endl;
+//                cout << "Energy level " << ans[i][j]->getPower() << endl;
+//            }
+//            else
+//            {
+//                cout << ans[i][j]->name() <<" is dead"<<endl;
+//            }
+//        }
+//        cout<< "\n"<<endl;
+//    }
+//    cout << "Two Consecutive days there is No Radiations " << endl;
+
+    destroyplants(plants);
+    destroyradiation();
+
+    return 0;
+}
+
+#else
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+
+
+
+TEST_CASE("1", "input2.txt")
+{
+    vector<radiation*> radiations;
+    vector<Plants*> plants;
+    vector < vector <Plants*> >ans;
+
+    create("input.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 3);
+    destroyplants(plants);
+
+    create("input2.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 2);
+    destroyplants(plants);
+
+    create("input3.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 3);
+    destroyplants(plants);
+
+    create("input4.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 3);
+    destroyplants(plants);
+
+    create("input6.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 6);
+    destroyplants(plants);
+
+     create("input7.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(ans.size() == 6);
+    destroyplants(plants);
+
+
+
+    destroyradiation();
+}
+
+TEST_CASE("2", "2nd") {
+
+    vector<radiation*> radiations;
+    vector<Plants*> plants;
+    vector < vector <Plants*> >ans;
+
+    create("input.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[3]->alive() == false);
+    destroyplants(plants);
+
+    create("input2.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[3]->alive() == true);
+    destroyplants(plants);
+
+    create("input4.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[0]->alive() == true);
+    destroyplants(plants);
+
+    create("input3.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[4]->alive() == false);
+    destroyplants(plants);
+
+    destroyradiation();
+
+}
+// plants[k]->getPower()
+
+TEST_CASE("3", "3rd") {
+
+    vector<radiation*> radiations;
+    vector<Plants*> plants;
+    vector < vector <Plants*> >ans;
+
+    create("input.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[2]->getPower() == 4);
+    destroyplants(plants);
+
+    create("input2.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[3]->getPower() == 2);
+    destroyplants(plants);
+
+    create("input4.txt", plants, radiations);
+    simulate(plants,radiations,ans);
+    CHECK(plants[0]->getPower() == 6);
+    destroyplants(plants);
+
+    destroyradiation();
+
+}
+
+
+#endif // NORMAL_M
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//void compute (vector<Plants*> &plants,vector<radiation*>radiations,int j)
+//{
+//        reqAlpha = 0 , reqDelta = 0;
+//        for (unsigned int i = 0; i < plants.size(); i++) // summing up the alpha and delta demand
+//        {
+//            if(plants[i]->alive())
+//            {
+//                reqAlpha+= plants[i]->getAlpha();
+//                reqDelta+= plants[i]->getDelta();
+//            }
+//        }
+//
+//            if(reqAlpha >= (3+reqDelta))
+//                {
+//                    radiations[j+1] =  Alpha::instance();
+//                }
+//            else if(reqDelta >= (3+reqAlpha))
+//                {
+//                    radiations[j+1] =  Delta::instance();
+//                }
+//            else
+//                {
+//                    radiations[j+1] = No_radiation::instance();
+//                }
+//}
+

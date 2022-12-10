@@ -1,0 +1,86 @@
+void simulate (vector<Plants*> &plants, vector<radiation*> &radiations, vector <Plants*> &ans)
+{
+    try
+    {
+    int j = 0;
+    bool l = false;
+    int reqAlpha;
+    int reqDelta;
+    string rad = "No Radiation";
+    while (true)
+    {
+            cout<<"#############################################################"<<endl;
+            cout<<endl;
+            cout<<"Day "<<j+1<<endl;
+            cout<<"Radiation of the day is " << rad << endl ;
+            cout<<endl;
+        if (l && radiations[j] == No_radiation::instance())
+        {
+            cout << "Two Consecutive days founded with No Radiations " << endl;
+            break;
+            //exit(1);
+        }
+         if( radiations[j] == No_radiation::instance() )
+         {
+             l = true;
+         }
+        reqAlpha = 0 , reqDelta = 0;
+        for (unsigned int i = 0; i < plants.size(); i++) // summing up the alpha and delta demand
+        {
+            if(plants[i]->alive())
+            {
+                reqAlpha+= plants[i]->getAlpha();
+                reqDelta+= plants[i]->getDelta();
+            }
+        }
+            if(reqAlpha >= (3+reqDelta))
+                {
+                    radiations[j+1] =  Alpha::instance();
+                    rad = "Alpha";
+                }
+            else if(reqDelta >= (3+reqAlpha))
+                {
+                    radiations[j+1] =  Delta::instance();
+                    rad = "Delta";
+                }
+            else
+                {
+                    radiations[j+1] = No_radiation::instance();
+                    rad = "No Radiation";
+                }
+         for(unsigned int k=0;k < plants.size();k++)
+        {
+//            cout<<"size"<<plants.size()<<endl;
+           if(plants[k]->alive())
+            {
+            plants[k]->influence(radiations[j]);
+            cout << "====================================================" << endl;
+            cout << "Name of the plant is " << plants[k]->name() << endl;
+             if(plants[k]->alive())
+            {
+                cout << plants[k]->name() <<" is alive"<<endl;
+                cout << "Energy level " << plants[k]->getPower() << endl;
+            }
+            else
+            {
+                cout << plants[k]->name() <<" is dead"<<endl;
+                plants.erase(plants.begin()+k);
+                k -= 1;
+            }
+            }
+        }
+
+        cout<<"\n \nRadiation of next day will be " << rad << endl ;
+        cout<<"#############################################################"<<endl<<endl<<endl<<endl;
+        j++;
+    }
+      for(unsigned int i = 0; i < plants.size(); i++)
+      {
+          ans.push_back(plants[i]);
+      }
+  }
+  catch (exception e)
+  {
+      cout<<e.what();
+  }
+}
